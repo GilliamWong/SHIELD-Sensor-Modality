@@ -1,0 +1,271 @@
+MEETING OVERVIEW
+
+SHIELD:
+
+Distribute work/tasks for shield
+
+Overview: Detect sensor degradation and predict sensor health
+
+Based on sensor readings
+
+Two stages
+
+1) detect the type of sensor in system (sensor modality detection)
+
+data from sensor output --> train model --> predict sensor type
+
+then use sensor specific model to feed to second layer
+
+2) Sensor specific degradation detection and sensor heath prediction
+
+5 field of focus
+
+Benchmark data
+
+public datasets or create in house benchmark data
+
+FIRST PRIORITY
+
+Alperen found some papers/dataset
+
+need to decide if we can decide
+
+Tanmay --> lead for benchmark data (TASKS BELOW)
+
+task: take a look at data and do a study of usability of data
+
+will dataset work for degradation study as well?
+
+Choose best dataset, create visualization
+
+Find out if the datasets include noise or if they are clean, we may need noise later
+
+software development for sensor modality detection
+
+can start with IMUs
+
+Feature extractors --> read data, see data in there (Alperen will send more literature on this)
+
+lead: William, second: Rishabh
+
+TASK: study on feature extraction methods
+
+software dev for degradation detection
+
+Lead: Rishabh , second: Ethan G
+
+train simple LSTM model
+
+TODO: work on dataset we have and train 2 layer LSTM model (communicate with Tanmay for benchmark data)
+
+Ethan T --> working on 1D CNN
+
+TASK create 1D CNN PLOT
+
+product development (ENGINE CAPSTONE TEAM -- JAN --> JUNE next year)
+
+hardware
+
+Writing + publication (aiming for 2)
+
+Lead: Van
+
+We have modality software and degradation software
+
+these will be the focus for 2 papers
+
+Starting with modality
+
+William and Rishabh will also take part in this
+
+TASK work on abstract for this
+
+Possible benchmark paper: include Tanmay
+
+Tanmay will also be a part of degradation paper
+
+Entrepreneurship-- > applying for CoMotion
+
+Lead: Alperen
+
+prepping for Commotion
+
+need some pitches, pitch decks
+
+need flyer to show project value (to be completed by Rishabh)
+
+ORION: Progress on System Design and Methodology
+
+12:23
+
+Highlighted Tasks by Student
+
+Tanmay — Benchmark Data Lead
+
+TASK: Review all candidate public datasets and evaluate usability for degradation studies.
+
+TASK: Determine whether each dataset includes noise or is clean (identify if we need to inject noise later).
+
+TASK: Decide which dataset(s) will be used for sensor modality + degradation stages.
+
+TASK: Create visualizations for the chosen dataset(s).
+
+TASK: Collaborate with Rishabh + Ethan G by providing benchmark data for LSTM training.
+
+TASK: Contribute to the possible benchmark paper.
+
+William — Software Lead (Modality Detection)
+
+TASK: Study feature extraction methods for IMU-based modality detection.
+
+TASK: Begin developing feature extraction pipeline (once literature from Alperen is shared).
+
+TASK: Assist Van with writing the modality detection paper (starting with the abstract).
+
+Rishabh — Software + Degradation Detection
+
+TASK: Study feature extraction methods (with William).
+
+TASK: Lead development of sensor degradation detection software.
+
+TASK: Train a 2-layer LSTM using benchmark datasets (coordinate with Tanmay).
+
+TASK: Assist Van with the modality detection paper abstract.
+
+TASK: Contribute to degradation paper.
+
+Ethan G — Degradation Detection (LSTM)
+
+TASK: Support Rishabh in training the 2-layer LSTM model.
+
+TASK: Use dataset chosen by Tanmay and perform training/experiments.
+
+Ethan T — 1D CNN
+
+TASK: Develop the 1D CNN model for comparison with LSTM.
+
+TASK: Produce clean plots/visualizations demonstrating the 1D CNN performance.
+
+Van — Writing + Publication Lead
+
+TASK: Lead writing for both papers (modality + degradation).
+
+TASK: Draft the abstract for the modality detection paper with William & Rishabh.
+
+TASK: Manage writing timeline for 2 publications.
+
+TASK: (ORION) Complete full draft of System Design and Methodology.
+
+Alperen — Entrepreneurship & Oversight
+
+TASK: Lead CoMotion preparation and commercialization discussions.
+
+TASK: Prepare startup/pitch strategy.
+
+TASK: Share additional literature on feature extraction with William & Rishabh.
+
+(Designated for CoMotion: Rishabh)
+
+TASK: Create a project value flyer for CoMotion application.
+
+Benchmark Data Papers:
+
+* https://ieeexplore.ieee.org/document/8418369
+
+* https://ieeexplore.ieee.org/document/8600317?denied=
+
+* https://ieeexplore.ieee.org/document/6246152
+
+* https://dl.acm.org/doi/abs/10.1145/2413097.2413148
+
+* https://link.springer.com/chapter/10.1007/978-3-030-51379-5_6
+
+* https://www.scitepress.org/papers/2016/56379/56379.pdf
+
+* https://www.mdpi.com/2078-2489/15/11/674
+
+* https://mdotcenter.org/sensorbench-establishing-the-first-systematic-benchmark-for-llm-sensor-processing-capabilities-copy
+
+SpringerLink
+
+Sensor-Based Benchmark Datasets: Comparison and Analysis
+
+Human Activity Recognition (HAR) using installed sensors has made renowned progress in the field of pattern recognition and human-computer interaction. To make efficient machine learning models, researchers need publicly available benchmark datasets. In this chapter,...
+
+10:26
+
+Publicly available sensor datasets: (C-MAPSS, UNSW Bearing, Paderborn, NASA PCoE)
+
+10:29
+
+My mindmap for the overall software/system development: Appreciate your feedbacks/inputs on this.SENSOR MODALITY DETECTION PIPELINE (Rishabh & William) Stage 1 — Signal Fingerprint Feature Extraction
+
+* Implement PSD features (centroid, slope, entropy, flatness)
+
+* Time-domain stats (skew, kurtosis, quantiles)
+
+* ADEV/OADEV for noise type characterization
+
+* AR coefficients (Burg) for spectral poles
+
+* Synthetic signals for unit tests
+
+Stage 2 — Baseline Classifiers
+
+* Random Forest
+
+* GMM for unknown class
+
+* SVM with calibrated probabilities
+
+* Cross-device validation
+
+Stage 3 — SSL Encoders
+
+* Build tiny CNN encoder (~30–60 dims)
+
+* Contrastive learning
+
+* Evaluate cluster separability (t-SNE)
+
+Stage 4 — TinyML deployment
+
+* Quantize model to INT8
+
+* Benchmark inference on STM32
+
+SENSOR DEGRADATION FORECASTING PIPELINE (Ethan Go & Ethan Terrill) Stage 1 — Anomaly Detection
+
+* LSTM autoencoder trained only on healthy windows
+
+* Reconstruction threshold calibration
+
+* Early detection evaluation
+
+Stage 2 — RUL Teacher Model
+
+* CNN-LSTM for sequence → RUL
+
+* Evaluated on C-MAPSS FD001–FD004
+
+* Save training curves, RMSE, scoring function S
+
+Stage 3 — Student Model (Tiny)
+
+* MobileNet-like 1D CNN
+
+* Knowledge Distillation
+
+* QAT conversion to INT8
+
+* Sparse pruning
+
+Stage 4 — Embedded Deployment
+
+* Export to TFLM → C array
+
+* Test inference latency on STM32
+
+* Optimize for flash + RAM
+
+* Validate against teacher model outputs
