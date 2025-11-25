@@ -77,9 +77,6 @@ class SensorDataLoader:
     #loads nasa cmapss data, space delimited, 26 columns (Unit, Time, Settings 1-3, Sensors 1-21)
     #sensor_indices (list): List of 0-based column indices to extract. If None, returns all 21 sensors (cols 5-26).
     def load_cmapss_txt(self, filepath: str, sensor_indices: list = None) -> np.ndarray:
-        if not os.path.exists(filepath):
-            raise FileNotFoundError(f"Data file not found: {filepath}")
-
         try:
             df = pd.read_csv(filepath, sep=r'\s+', header=None, engine='python')
             
@@ -95,9 +92,6 @@ class SensorDataLoader:
     
     #loads npz file, compressed, typed arrays and metadata
     def load_npz(self, filepath: str, key: str = 'signal') -> np.ndarray:
-        if not os.path.exists(filepath):
-            raise FileNotFoundError(f"NPZ file not found: {filepath}")
-            
         try:
             with np.load(filepath) as data:
                 if key not in data:
@@ -109,9 +103,6 @@ class SensorDataLoader:
 
     #loads mat file, legacy engineering data from MATLAB .mat files (e.g., UNSW Bearing Data)
     def load_matlab(self, filepath: str, variable_name: str) -> np.ndarray:
-        if not os.path.exists(filepath):
-            raise FileNotFoundError(f"MAT file not found: {filepath}")
-            
         try:
             mat = loadmat(filepath)
             if variable_name not in mat:
@@ -128,9 +119,6 @@ class SensorDataLoader:
         channel_columns: Optional[Sequence[str]] = None,
         sample_rate: Optional[float] = None,
     ) -> Tuple[np.ndarray, Optional[float]]:
-        if not os.path.exists(filepath):
-            raise FileNotFoundError(f"Data file not found: {filepath}")
-
         ext = os.path.splitext(filepath)[1].lower()
         if ext in [".csv", ".txt"]:
             df = pd.read_csv(filepath)

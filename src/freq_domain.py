@@ -36,7 +36,7 @@ def get_spectral_entropy(power: np.ndarray) -> float:
     eps = 1e-12
     power = np.clip(power, eps, None)
     power = power / np.sum(power)
-    return float(entropy(power))
+    return entropy(power)
 
 def get_spectral_flatness(power: np.ndarray) -> float:
     eps = 1e-12
@@ -45,17 +45,17 @@ def get_spectral_flatness(power: np.ndarray) -> float:
     arithmetic_mean = np.mean(power)
     if arithmetic_mean == 0:
         return np.nan
-    return float(geometric_mean / arithmetic_mean)
+    return geometric_mean / arithmetic_mean
 
 def get_spectral_centroid(freqs: np.ndarray, power: np.ndarray) -> float:
     eps = 1e-12
     total_power = np.sum(power) + eps
-    return float(np.sum(freqs * power) / total_power)
+    return np.sum(freqs * power) / total_power
 
 def get_band_energy(freqs: np.ndarray, power: np.ndarray, band: Sequence[float]) -> float:
     low, high = band
     mask = (freqs >= low) & (freqs < high)
-    return float(np.sum(power[mask]))
+    return np.sum(power[mask])
 
 def extract_freq_features(signal: np.ndarray, fs: float, bands: Iterable[Sequence[float]] = None) -> Mapping[str, float]:
     freqs, power = get_psd_welch(signal, fs)
