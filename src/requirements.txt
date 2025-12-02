@@ -4,3 +4,4 @@ pandas
 matplotlib
 allantools
 pytest
+scikit-learn
