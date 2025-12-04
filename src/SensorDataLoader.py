@@ -140,4 +140,41 @@ class SensorDataLoader:
 
         return data, inferred_rate
 
+    #loads pamap2 data, 5 columns (timestamp, activity, heart_rate, hand_temp, chest_temp, ankle_temp)
+    def load_pamap2(self, filepath: str) -> dict:
+        data = pd.read_csv(filepath, sep=r'\s+', header=None, 
+                        na_values='NaN', engine='python')
+        
+        sensors = {
+            'timestamp': data.iloc[:, 0].values,
+            'activity': data.iloc[:, 1].values.astype(int),
+            'heart_rate': data.iloc[:, 2].values,
+        }
+        
+        # IMU offsets: hand=3, chest=20, ankle=37
+        imu_config = {'hand': 3, 'chest': 20, 'ankle': 37}
+        
+        for location, offset in imu_config.items():
+            sensors[f'{location}_temp'] = data.iloc[:, offset].values
+            sensors[f'{location}_accel_16g'] = data.iloc[:, offset+1:offset+4].values
+            sensors[f'{location}_accel_6g'] = data.iloc[:, offset+4:offset+7].values
+            sensors[f'{location}_gyro'] = data.iloc[:, offset+7:offset+10].values
+            sensors[f'{location}_mag'] = data.iloc[:, offset+10:offset+13].values
+        
+        return sensors
+
+    #filters out non-stationary segments (e.g., walking, running)
+    def get_stationary_segments(self, sensors: dict, activities: list = [2, 3]) -> dict:
+        mask = np.isin(sensors['activity'], activities)
+        
+        filtered = {}
+        for key, val in sensors.items():
+            if isinstance(val, np.ndarray):
+                if val.ndim == 1:
+                    filtered[key] = val[mask]
+                else:
+                    filtered[key] = val[mask, :]
+        
+        return filtered
+
     
