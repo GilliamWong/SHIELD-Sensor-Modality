@@ -2,24 +2,12 @@ import numpy as np
 import allantools
 from typing import Dict
 
+#calculate Allan Deviation (OADEV), the standard metric for inertial sensor stability (gyroscopes/accelerometers).
+#args:
+#   signal: The sensor data array (1D).
+#   fs: Sampling frequency in Hz.
+#   taus: Specific integration times to check. If None, selects decades automatically.
 def get_allan_deviation(signal: np.ndarray, fs: float, taus: np.ndarray = None) -> Dict[str, float]:
-    """
-    Calculates Overlapping Allan Deviation (OADEV), the standard metric for 
-    inertial sensor stability (gyroscopes/accelerometers).
-    
-    Physics Targets (Log-Log Slope):
-        - Slope -0.5 = White Noise (Angle Random Walk)
-        - Slope 0.0  = Flicker Noise (Bias Instability)
-        - Slope +0.5 = Random Walk (Rate Random Walk)
-        
-    Args:
-        signal: The sensor data array (1D).
-        fs: Sampling frequency in Hz.
-        taus: Specific integration times to check. If None, selects decades automatically.
-        
-    Returns:
-        Dictionary containing ADEV values at specific taus and the estimated slope.
-    """
     # default to decades if no taus provided
     if taus is None:
         # We can only go up to half the signal length
