@@ -1,9 +1,5 @@
 from testing import prototype_classifier, analyze_feature_discrimination
 import sys
-import numpy as np
-import pandas as pd
-from SensorDataLoader import SensorDataLoader
-from feature_extractor import FeatureExtractor
 
 #inject fault into real sensor data, adds degradation on top of signal
 def inject_fault(signal: np.ndarray, fault_type: str, severity: float = 1.0, seed: int = 42) -> np.ndarray:
@@ -168,15 +164,15 @@ def run_modality_experiment(data_dir: str):
     
     # Analyze which features discriminate best
     print("\n[2/3] Analyzing feature discrimination...")
-    discrimination = analyze_feature_discrimination(df,
-                                                     label_col='modality')
+    discrimination = analyze_feature_discrimination(df, 
+                                                     target_column='modality')
     
     print("\nTop 10 discriminative features:")
     print(discrimination.head(10))
     
     # Train classifier
     print("\n[3/3] Training Random Forest classifier...")
-    clf, le, importances = prototype_classifier(df, label_col='modality')
+    clf, le, importances = prototype_classifier(df, target_column='modality')
     
     print("\n" + "=" * 70)
     print("RESULTS SUMMARY")
@@ -204,7 +200,7 @@ def run_fault_detection_experiment(data_dir: str):
     
     # Train binary classifier: healthy vs degraded
     print("\n[2/2] Training fault detector...")
-    clf, le, importances = prototype_classifier(df, label_col='label')
+    clf, le, importances = prototype_classifier(df, target_column='label')
     
     print("\n" + "=" * 70)
     print("RESULTS SUMMARY")
@@ -220,6 +216,6 @@ if __name__ == "__main__":
         print("Example: python pamap2_testing.py ./PAMAP2_Dataset/Protocol")
         sys.exit(1)
     
-    data_dir = sys.argv[1]
+    data_dir = "/Users/gilliam/Desktop/Project Shield/PAMAP2_Dataset/Protocol" #sys.argv[1]
     run_modality_experiment(data_dir)
     run_fault_detection_experiment(data_dir)

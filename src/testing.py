@@ -1,13 +1,6 @@
 """
 Project SHIELD - Comprehensive Testing and Analysis Suite (v2)
 
-FIXES from v1:
-- Feature distributions now show NOISE-CHARACTERISTIC features (psd_slope, adev_slope, etc.)
-  instead of bias-dominated features (rms, mean, quantiles)
-- Degradation plots use smoothing and exclude noisy kurtosis
-- Fixed summary accuracy calculation bug
-- Added zero-mean simulation option for cleaner noise analysis
-
 This module provides:
 1. Physics validation - Verify pipeline correctly identifies noise types
 2. Sensor modality simulation - Create synthetic sensor signatures
@@ -15,7 +8,7 @@ This module provides:
 4. Feature discrimination analysis - Identify most useful features
 5. Prototype classifier - End-to-end pipeline validation
 
-Author: William (SHIELD Team)
+Author: William 
 """
 
 import numpy as np
@@ -27,8 +20,8 @@ from typing import Dict, List, Tuple, Optional
 import warnings
 
 from SensorDataLoader import SensorDataLoader
-from feature_extractor import FeatureExtractor
-from freq_domain_analyses import get_psd_welch, get_spectral_slope
+from extractor import FeatureExtractor
+from freq_domain import get_psd_welch, get_spectral_slope
 
 # Suppress warnings for cleaner output
 warnings.filterwarnings('ignore')
@@ -190,7 +183,7 @@ def validate_physics(save_plot: bool = True) -> Dict[str, dict]:
 
 
 # =============================================================================
-# 2. SENSOR MODALITY SIMULATION (IMPROVED)
+# 2. SENSOR MODALITY SIMULATION
 # =============================================================================
 
 def simulate_sensor_modalities(
@@ -203,9 +196,6 @@ def simulate_sensor_modalities(
     """
     Simulate different sensor modalities with characteristic noise profiles.
     Creates multiple instances of each sensor type with slight variations.
-    
-    IMPROVEMENT: zero_mean=True removes DC bias so features measure noise
-    characteristics instead of just the offset.
     
     Args:
         n_samples: Number of samples per signal.
@@ -317,7 +307,7 @@ def simulate_sensor_modalities(
 
 
 # =============================================================================
-# 3. DEGRADATION SIMULATION (IMPROVED)
+# 3. DEGRADATION SIMULATION
 # =============================================================================
 
 def simulate_degradation(
