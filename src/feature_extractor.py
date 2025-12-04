@@ -2,15 +2,25 @@ import numpy as np
 import pandas as pd
 from typing import Iterable, Mapping, Optional, Sequence
 
-import freq_domain
-import time_domain
-import stability
+import freq_domain_analyses
+import time_domain_analyses
+import allan_dev
 
 
 class FeatureExtractor:
     def __init__(self, fs: float):
         self.fs = fs
     
+    #sliding window segmentation of data and feature extraction for each window, returns a DataFrame where rows = windows, columns = feature names 
+    #args:
+    #   signal: Input signal array (1D or 2D with shape (n_samples, 1)).
+    #   window_size_sec: Window size in seconds.
+    #   step_size_sec: Step/hop size in seconds.
+    #   bands: Optional frequency bands for band energy calculation.
+    #   normalize: Whether to normalize each window.
+    #   normalization_stats: Optional dict with 'mean' and 'std' for normalization.
+    #   include_adev: Whether to include Allan deviation features.
+    #   adev_min_samples: Minimum samples required to compute ADEV.
     def process_signal(
         self,
         signal: np.ndarray,
@@ -22,26 +32,6 @@ class FeatureExtractor:
         include_adev: bool = True,
         adev_min_samples: int = 50,
     ) -> pd.DataFrame:
-        """
-        Applies sliding window segmentation and extracts features for each window.
-        Returns a DataFrame where rows = windows, columns = feature names.
-        
-        Args:
-            signal: Input signal array (1D or 2D with shape (n_samples, 1)).
-            window_size_sec: Window size in seconds.
-            step_size_sec: Step/hop size in seconds.
-            bands: Optional frequency bands for band energy calculation.
-                   Each band is a tuple (low_freq, high_freq).
-            normalize: Whether to normalize each window.
-            normalization_stats: Optional dict with 'mean' and 'std' for normalization.
-                                 If None and normalize=True, computes from data.
-            include_adev: Whether to include Allan deviation features.
-                          Set to False for very short windows where ADEV is unreliable.
-            adev_min_samples: Minimum samples required to compute ADEV.
-        
-        Returns:
-            DataFrame with extracted features for each window.
-        """
         # Convert seconds to samples
         window_length = int(window_size_sec * self.fs)
         step_length = int(step_size_sec * self.fs)
@@ -74,17 +64,17 @@ class FeatureExtractor:
             if normalize:
                 window = (window - mean_val) / std_val
             
-            # === TIME DOMAIN FEATURES ===
-            stats = time_domain.get_statistical_moments(window)
-            
-            # === FREQUENCY DOMAIN FEATURES ===
-            freq_features = freq_domain.extract_freq_features(window, self.fs, bands=bands)
-            
-            # === STABILITY FEATURES (ALLAN DEVIATION) ===
+            #time domain features
+            stats = time_domain_analyses.get_statistical_moments(window)
+
+            #frequency domain features
+            freq_features = freq_domain_analyses.extract_freq_features(window, self.fs, bands=bands)
+
+            #stability features (allan deviation)
             adev_features = {}
             if include_adev and window_length >= adev_min_samples:
                 try:
-                    adev_features = stability.get_allan_deviation(window, self.fs)
+                    adev_features = allan_dev.get_allan_deviation(window, self.fs)
                 except Exception:
                     # ADEV can fail on very short or constant signals
                     adev_features = {}
@@ -109,41 +99,39 @@ class FeatureExtractor:
         
         return df
     
+    #extract features from the entire signal (no windowing)
+    #args:
+    #   signal: Input signal array.
+    #   bands: Optional frequency bands for band energy calculation.
+    #returns:
+    #   Dictionary of features.
     def process_signal_full(
         self,
         signal: np.ndarray,
         bands: Optional[Iterable[Sequence[float]]] = None,
     ) -> dict:
-        """
-        Extract features from the entire signal (no windowing).
-        Useful for getting a single feature vector for classification.
-        
-        Args:
-            signal: Input signal array.
-            bands: Optional frequency bands for band energy calculation.
-            
-        Returns:
-            Dictionary of features.
-        """
         values = np.asarray(signal, dtype=np.float64).flatten()
         
         # Time domain
-        stats = time_domain.get_statistical_moments(values)
-        
+        stats = time_domain_analyses.get_statistical_moments(values)
+
         # Frequency domain
-        freq_features = freq_domain.extract_freq_features(values, self.fs, bands=bands)
-        
+        freq_features = freq_domain_analyses.extract_freq_features(values, self.fs, bands=bands)
+
         # Stability (ADEV)
         adev_features = {}
         if len(values) >= 50:
             try:
-                adev_features = stability.get_allan_deviation(values, self.fs)
+                adev_features = allan_dev.get_allan_deviation(values, self.fs)
             except Exception:
                 pass
         
         return {**stats, **freq_features, **adev_features}
 
-
+#convenience function to extract features from multiple signals
+    #args:
+    #   signals: List of signal arrays.
+    #   fs: Sampling frequency in Hz.
 def extract_features_batch(
     signals: Sequence[np.ndarray],
     fs: float,
@@ -152,12 +140,6 @@ def extract_features_batch(
     labels: Optional[Sequence[str]] = None,
     **kwargs
 ) -> pd.DataFrame:
-    """
-    Convenience function to extract features from multiple signals.
-    
-    Args:
-        signals: List of signal arrays.
-        fs: Sampling frequency in Hz.
         window_size_sec: Window size in seconds.
         step_size_sec: Step size in seconds.
         labels: Optional list of labels for each signal.

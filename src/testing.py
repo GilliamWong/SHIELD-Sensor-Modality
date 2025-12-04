@@ -27,8 +27,8 @@ from typing import Dict, List, Tuple, Optional
 import warnings
 
 from SensorDataLoader import SensorDataLoader
-from extractor import FeatureExtractor
-from freq_domain import get_psd_welch, get_spectral_slope
+from feature_extractor import FeatureExtractor
+from freq_domain_analyses import get_psd_welch, get_spectral_slope
 
 # Suppress warnings for cleaner output
 warnings.filterwarnings('ignore')
