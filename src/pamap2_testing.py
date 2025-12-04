@@ -1,5 +1,9 @@
 from testing import prototype_classifier, analyze_feature_discrimination
 import sys
+import numpy as np
+import pandas as pd
+from SensorDataLoader import SensorDataLoader
+from feature_extractor import FeatureExtractor
 
 #inject fault into real sensor data, adds degradation on top of signal
 def inject_fault(signal: np.ndarray, fault_type: str, severity: float = 1.0, seed: int = 42) -> np.ndarray:
@@ -153,62 +157,62 @@ def run_modality_experiment(data_dir: str):
     print("=" * 70)
     print("MODALITY DETECTION - REAL PAMAP2 DATA")
     print("=" * 70)
-    
+
     # Build dataset
     print("\n[1/3] Building feature dataset from PAMAP2...")
     df = build_pamap2_modality_dataset(data_dir, fs=100.0)
-    
+
     print(f"\nDataset shape: {df.shape}")
     print(f"Modalities: {df['modality'].unique()}")
     print(f"Samples per modality:\n{df['modality'].value_counts()}")
-    
+
     # Analyze which features discriminate best
     print("\n[2/3] Analyzing feature discrimination...")
-    discrimination = analyze_feature_discrimination(df, 
-                                                     target_column='modality')
-    
+    discrimination = analyze_feature_discrimination(df,
+                                                     label_col='modality')
+
     print("\nTop 10 discriminative features:")
     print(discrimination.head(10))
-    
+
     # Train classifier
     print("\n[3/3] Training Random Forest classifier...")
-    clf, le, importances = prototype_classifier(df, target_column='modality')
-    
+    clf_results = prototype_classifier(df, label_col='modality')
+
     print("\n" + "=" * 70)
     print("RESULTS SUMMARY")
     print("=" * 70)
-    print(f"Test Accuracy: {clf.test_accuracy_:.2%}")
-    print(f"Most important feature: {importances.iloc[0]['feature']}")
+    print(f"Test Accuracy: {clf_results['test_accuracy']:.2%}")
+    print(f"Most important feature: {clf_results['importances'].iloc[0]['feature']}")
     print(f"Most discriminative feature: {discrimination.iloc[0]['feature']}")
-    
-    return df, clf, discrimination
+
+    return df, clf_results, discrimination
 
 #run fault detection experiment, classifies healthy vs degraded signals
 def run_fault_detection_experiment(data_dir: str):
     print("=" * 70)
     print("FAULT DETECTION - SYNTHETIC DEGRADATION")
     print("=" * 70)
-    
+
     # Build dataset with healthy + degraded signals
     print("\n[1/2] Building fault detection dataset...")
     df = build_fault_detection_dataset(data_dir, fs=100.0)
-    
+
     print(f"\nDataset shape: {df.shape}")
     print(f"Labels: {df['label'].unique()}")
     print(f"Samples per label:\n{df['label'].value_counts()}")
     print(f"Fault types:\n{df['fault_type'].value_counts()}")
-    
+
     # Train binary classifier: healthy vs degraded
     print("\n[2/2] Training fault detector...")
-    clf, le, importances = prototype_classifier(df, target_column='label')
-    
+    clf_results = prototype_classifier(df, label_col='label')
+
     print("\n" + "=" * 70)
     print("RESULTS SUMMARY")
     print("=" * 70)
-    print(f"Test Accuracy: {clf.test_accuracy_:.2%}")
-    print(f"Most important feature: {importances.iloc[0]['feature']}")
-    
-    return df, clf
+    print(f"Test Accuracy: {clf_results['test_accuracy']:.2%}")
+    print(f"Most important feature: {clf_results['importances'].iloc[0]['feature']}")
+
+    return df, clf_results
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -216,6 +220,6 @@ if __name__ == "__main__":
         print("Example: python pamap2_testing.py ./PAMAP2_Dataset/Protocol")
         sys.exit(1)
     
-    data_dir = "/Users/gilliam/Desktop/Project Shield/PAMAP2_Dataset/Protocol" #sys.argv[1]
+    data_dir = sys.argv[1]
     run_modality_experiment(data_dir)
     run_fault_detection_experiment(data_dir)

@@ -20,8 +20,8 @@ from typing import Dict, List, Tuple, Optional
 import warnings
 
 from SensorDataLoader import SensorDataLoader
-from extractor import FeatureExtractor
-from freq_domain import get_psd_welch, get_spectral_slope
+from feature_extractor import FeatureExtractor
+from freq_domain_analyses import get_psd_welch, get_spectral_slope
 
 # Suppress warnings for cleaner output
 warnings.filterwarnings('ignore')
@@ -30,7 +30,7 @@ warnings.filterwarnings('ignore')
 METADATA_COLUMNS = [
     'instance_id', 'noise_type', 'window_start_sample',
     'window_start_sec', 'degradation_progress', 'degradation_type',
-    'signal_id', 'label'
+    'signal_id', 'label', 'sensor', 'location', 'axis', 'fault_type'
 ]
 
 
@@ -752,8 +752,18 @@ def prototype_classifier(
     
     # Store test accuracy for summary
     clf.test_accuracy_ = test_accuracy
-    
-    return clf, le, importances
+
+    # Return dict with all data needed for visualization
+    return {
+        'clf': clf,
+        'le': le,
+        'importances': importances,
+        'y_test': y_test,
+        'y_pred': y_pred,
+        'y_prob': clf.predict_proba(X_test_scaled),
+        'classes': le.classes_,
+        'test_accuracy': test_accuracy
+    }
 
 
 # =============================================================================
@@ -794,7 +804,7 @@ def run_full_analysis():
     
     # 5. Prototype Classifier
     print("\n\n[5/5] PROTOTYPE CLASSIFIER")
-    clf, le, importances = prototype_classifier(sensor_df)
+    clf_results = prototype_classifier(sensor_df)
     
     # Summary (FIXED accuracy calculation)
     print("\n" + "=" * 70)
@@ -806,16 +816,15 @@ def run_full_analysis():
     print("  - feature_distributions.png")
     print("\nKey findings:")
     print(f"  - Most discriminative feature: {discrimination_df.iloc[0]['feature']}")
-    if clf is not None and hasattr(clf, 'test_accuracy_'):
-        print(f"  - Classifier test accuracy: {clf.test_accuracy_:.1%}")
-    
+    if clf_results is not None:
+        print(f"  - Classifier test accuracy: {clf_results['test_accuracy']:.1%}")
+
     return {
         'physics': physics_results,
         'sensor_data': sensor_df,
         'discrimination': discrimination_df,
         'degradation': degradation_results,
-        'classifier': clf,
-        'label_encoder': le,
+        'classifier_results': clf_results,
     }
 
 

@@ -140,11 +140,12 @@ def extract_features_batch(
     labels: Optional[Sequence[str]] = None,
     **kwargs
 ) -> pd.DataFrame:
-        window_size_sec: Window size in seconds.
-        step_size_sec: Step size in seconds.
-        labels: Optional list of labels for each signal.
-        **kwargs: Additional arguments passed to process_signal.
-        
+    """
+    window_size_sec: Window size in seconds.
+    step_size_sec: Step size in seconds.
+    labels: Optional list of labels for each signal.
+    **kwargs: Additional arguments passed to process_signal.
+
     Returns:
         DataFrame with features from all signals, with 'signal_id' column.
     """
