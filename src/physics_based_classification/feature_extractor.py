@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 from typing import Iterable, Mapping, Optional, Sequence
 
-import freq_domain_analyses
-import time_domain_analyses
-import allan_dev
+from . import freq_domain_analyses
+from . import time_domain_analyses
+from . import allan_dev
 
 
 class FeatureExtractor:

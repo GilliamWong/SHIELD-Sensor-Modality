@@ -1,11 +1,17 @@
 import numpy as np
 import joblib
+import os
+import sys
 from pathlib import Path
-from feature_extractor import FeatureExtractor
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from physics_based_classification.feature_extractor import FeatureExtractor
 
 
 class SensorPredictor:
-    def __init__(self, model_path: str = 'models/'):
+    def __init__(self, model_path: str = None):
+        if model_path is None:
+            model_path = os.path.join(os.path.dirname(__file__), 'models')
         model_dir = Path(model_path)
         self.clf = joblib.load(model_dir / 'rf_classifier.joblib')
         self.scaler = joblib.load(model_dir / 'scaler.joblib')
@@ -58,7 +64,6 @@ class SensorPredictor:
 
 
 if __name__ == '__main__':
-    import sys
     from SensorDataLoader import SensorDataLoader
 
     loader = SensorDataLoader(seed=42)
@@ -67,7 +72,7 @@ if __name__ == '__main__':
     print("-" * 50)
 
     try:
-        predictor = SensorPredictor(model_path='models/')
+        predictor = SensorPredictor()
 
         test_cases = [
             ('white', 'Expected: accelerometer-like'),
