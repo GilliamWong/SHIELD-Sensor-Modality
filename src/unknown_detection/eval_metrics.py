@@ -5,6 +5,9 @@ import seaborn as sns
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 from sklearn.calibration import calibration_curve
 from sklearn.preprocessing import LabelBinarizer
+from scipy.fft import fft
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.model_selection import LeaveOneGroupOut
 
 # Set plotting style for publication-ready figures
 plt.style.use('seaborn-v0_8-whitegrid')
@@ -140,3 +143,65 @@ def plot_calibration_curves(y_true, y_probs, classes, mode='top-1'):
     
     plt.tight_layout()
     plt.show()
+
+
+# Rejection Policy (Unknown Detection)
+
+# y_probs (ndarray): Probability output from rf.predict_proba().
+# classes (list): List of class names from the model.
+# margin_threshold (float): Minimum required gap between Top-1 and Top-2 confidence.
+# Returns (tuple): (final_predictions, margin_scores).
+def apply_rejection_policy(y_probs, classes, margin_threshold=0.2):
+    # Sort probabilities descending to find the two most likely classes
+    sorted_probs = np.sort(y_probs, axis=1)[:, ::-1]
+    
+    # Calculate Margin: The model's "certainty" between its first and second choice.
+    margins = sorted_probs[:, 0] - sorted_probs[:, 1]
+    
+    # Standard Prediction (Top-1)
+    top_1_idx = np.argmax(y_probs, axis=1)
+    preds = np.array([classes[i] for i in top_1_idx])
+    
+    # Apply "Unknown" Policy: If margin is too small, the model is 'Ambiguous'.
+    preds[margins < margin_threshold] = "Unknown"
+    
+    return preds, margins
+
+
+# Baseline + Confidence Policy Table
+
+# y_true (list): Actual ground-truth sensor labels.
+# y_probs (ndarray): Predicted probabilities.
+# classes (list): Ordered list of sensor names.
+# thresholds (list): A list of margin values to test for the ablation study.
+# Returns (DataFrame): A paper-ready summary of Accuracy vs. Coverage.
+def generate_policy_summary_table(y_true, y_probs, classes, thresholds=[0.0, 0.1, 0.2, 0.3, 0.5]):
+    summary_data = []
+    
+    for t in thresholds:
+        # Get predictions using the rejection policy
+        preds, _ = apply_rejection_policy(y_probs, classes, margin_threshold=t)
+        
+        # Coverage: What percentage of data did the model NOT reject?
+        known_mask = preds != "Unknown"
+        coverage = np.mean(known_mask)
+        
+        # Performance on "Known" (High-Confidence) samples
+        if coverage > 0:
+            acc = np.mean(preds[known_mask] == np.array(y_true)[known_mask])
+            
+            # Top-2 Accuracy: Was the correct answer in the top 2 guesses?
+            top_2_indices = np.argsort(y_probs, axis=1)[:, -2:]
+            top_2_preds = [[classes[i] for i in row] for row in top_2_indices]
+            top_2_acc = np.mean([y_t in p_list for y_t, p_list in zip(y_true, top_2_preds)])
+        else:
+            acc, top_2_acc = 0, 0
+            
+        summary_data.append({
+            "Margin Threshold (τ)": t,
+            "Top-1 Accuracy": f"{acc:.2%}",
+            "Top-2 Accuracy": f"{top_2_acc:.2%}",
+            "Coverage": f"{coverage:.2%}"
+        })
+        
+    return pd.DataFrame(summary_data)
