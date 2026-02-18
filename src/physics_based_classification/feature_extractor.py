@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd
-from typing import Iterable, Mapping, Optional, Sequence
+from typing import Dict, Iterable, Mapping, Optional, Sequence, Tuple
 from .wavelet_analyses import extract_wavelet_features
+from .signal_quality import extract_signal_quality_features
+from .divergence_analysis import compute_window_divergence
 
 from . import freq_domain_analyses
 from . import time_domain_analyses
@@ -36,6 +38,9 @@ class FeatureExtractor:
         adev_min_samples: int = 50,
         include_wavelet: bool = True,
         wavelet_level: Optional[int] = 5,
+        include_signal_quality: bool = True,
+        include_divergence: bool = False,
+        divergence_ref_dists: Optional[Dict[str, Tuple]] = None,
     ) -> pd.DataFrame:
         # Convert seconds to samples
         window_length = int(window_size_sec * self.fs)
@@ -95,8 +100,28 @@ class FeatureExtractor:
                     wavelet_features = {}
             # ---- END NEW ----
 
+            # ---- Signal quality features ----
+            sq_features = {}
+            if include_signal_quality and window_length >= 8:
+                try:
+                    sq_features = extract_signal_quality_features(window, self.fs)
+                except Exception:
+                    sq_features = {}
+
+            # ---- Divergence features (requires reference) ----
+            div_features = {}
+            if include_divergence and divergence_ref_dists is not None:
+                try:
+                    div_features = compute_window_divergence(
+                        window, divergence_ref_dists,
+                        level=wavelet_level or 5,
+                    )
+                except Exception:
+                    div_features = {}
+
             # Merge all features into one row
-            row = {**stats, **freq_features, **adev_features, **wavelet_features}
+            row = {**stats, **freq_features, **adev_features,
+                   **wavelet_features, **sq_features, **div_features}
             
             # Add window metadata
             row['window_start_sample'] = i
@@ -129,6 +154,7 @@ class FeatureExtractor:
         bands: Optional[Iterable[Sequence[float]]] = None,
         include_wavelet: bool = True,
         wavelet_level: Optional[int] = 5,
+        include_signal_quality: bool = True,
     ) -> dict:
         values = np.asarray(signal, dtype=np.float64).flatten()
         
@@ -157,7 +183,16 @@ class FeatureExtractor:
                 pass
         # ---- END NEW ----
 
-        return {**stats, **freq_features, **adev_features, **wavelet_features}
+        # ---- Signal quality features ----
+        sq_features = {}
+        if include_signal_quality and len(values) >= 8:
+            try:
+                sq_features = extract_signal_quality_features(values, self.fs)
+            except Exception:
+                pass
+
+        return {**stats, **freq_features, **adev_features,
+                **wavelet_features, **sq_features}
 
 #convenience function to extract features from multiple signals
     #args:

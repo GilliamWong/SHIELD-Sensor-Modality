@@ -298,6 +298,34 @@ def get_wavelet_variance(coeffs: np.ndarray) -> float:
     return float(np.mean(coeffs ** 2))
 
 
+def get_wavelet_rms(coeffs: np.ndarray) -> float:
+    """Compute the RMS of wavelet coefficients in a sub-band.
+
+    RMS measures the average amplitude of oscillatory content at that
+    frequency scale. Equivalent to sqrt(variance) for zero-mean MODWT
+    coefficients.
+    """
+    return float(np.sqrt(np.mean(coeffs ** 2)))
+
+
+def get_wavelet_kurtosis(coeffs: np.ndarray) -> float:
+    """Compute the excess kurtosis of wavelet coefficients in a sub-band.
+
+    High kurtosis = heavy tails = transient/impulse content (spikes).
+    Low kurtosis = light tails = smooth/Gaussian content.
+    Uses Fisher's definition (excess kurtosis; normal distribution = 0).
+    """
+    n = len(coeffs)
+    if n < 4:
+        return 0.0
+    mean_c = np.mean(coeffs)
+    std_c = np.std(coeffs)
+    if std_c < 1e-12:
+        return 0.0
+    m4 = np.mean((coeffs - mean_c) ** 4)
+    return float(m4 / (std_c ** 4) - 3.0)
+
+
 def get_wavelet_entropy(coeffs: np.ndarray) -> float:
     """Compute the Shannon entropy of the energy distribution within a sub-band.
     
@@ -395,10 +423,15 @@ def extract_wavelet_features(
         v = get_wavelet_variance(Dj)
         ent = get_wavelet_entropy(Dj)
         
+        rms_val = get_wavelet_rms(Dj)
+        kurt_val = get_wavelet_kurtosis(Dj)
+
         features[f'modwt_d{j}_energy'] = e
         features[f'modwt_d{j}_variance'] = v
         features[f'modwt_d{j}_entropy'] = ent
-        
+        features[f'modwt_d{j}_rms'] = rms_val
+        features[f'modwt_d{j}_kurtosis'] = kurt_val
+
         total_energy += e
         detail_energies.append(e)
     
@@ -408,6 +441,8 @@ def extract_wavelet_features(
     features['modwt_a_energy'] = a_energy
     features['modwt_a_variance'] = get_wavelet_variance(A)
     features['modwt_a_entropy'] = get_wavelet_entropy(A)
+    features['modwt_a_rms'] = get_wavelet_rms(A)
+    features['modwt_a_kurtosis'] = get_wavelet_kurtosis(A)
     total_energy += a_energy
     
     # Total energy and relative energies
