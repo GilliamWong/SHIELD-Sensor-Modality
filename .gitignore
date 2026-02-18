@@ -38,3 +38,6 @@ notebooks/figures/*.png
 
 # Loose reference PDFs
 *.pdf
+
+# Internal docs/reports
+docs/
