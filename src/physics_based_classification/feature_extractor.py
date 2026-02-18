@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from typing import Iterable, Mapping, Optional, Sequence
+from .wavelet_analyses import extract_wavelet_features
 
 from . import freq_domain_analyses
 from . import time_domain_analyses
@@ -21,6 +22,8 @@ class FeatureExtractor:
     #   normalization_stats: Optional dict with 'mean' and 'std' for normalization.
     #   include_adev: Whether to include Allan deviation features.
     #   adev_min_samples: Minimum samples required to compute ADEV.
+    #   include_wavelet: Whether to include MODWT wavelet features.
+    #   wavelet_level: Number of MODWT decomposition levels (None = auto).
     def process_signal(
         self,
         signal: np.ndarray,
@@ -31,6 +34,8 @@ class FeatureExtractor:
         normalization_stats: Optional[Mapping[str, float]] = None,
         include_adev: bool = True,
         adev_min_samples: int = 50,
+        include_wavelet: bool = True,
+        wavelet_level: Optional[int] = 5,
     ) -> pd.DataFrame:
         # Convert seconds to samples
         window_length = int(window_size_sec * self.fs)
@@ -79,8 +84,19 @@ class FeatureExtractor:
                     # ADEV can fail on very short or constant signals
                     adev_features = {}
             
+            # ---- NEW: wavelet domain features (MODWT) ----
+            wavelet_features = {}
+            if include_wavelet and window_length >= 8:  # sym4 filter needs >= 8 samples
+                try:
+                    wavelet_features = extract_wavelet_features(
+                        window, self.fs, level=wavelet_level
+                    )
+                except Exception:
+                    wavelet_features = {}
+            # ---- END NEW ----
+
             # Merge all features into one row
-            row = {**stats, **freq_features, **adev_features}
+            row = {**stats, **freq_features, **adev_features, **wavelet_features}
             
             # Add window metadata
             row['window_start_sample'] = i
@@ -103,12 +119,16 @@ class FeatureExtractor:
     #args:
     #   signal: Input signal array.
     #   bands: Optional frequency bands for band energy calculation.
+    #   include_wavelet: Whether to include MODWT wavelet features.
+    #   wavelet_level: Number of MODWT decomposition levels (None = auto).
     #returns:
     #   Dictionary of features.
     def process_signal_full(
         self,
         signal: np.ndarray,
         bands: Optional[Iterable[Sequence[float]]] = None,
+        include_wavelet: bool = True,
+        wavelet_level: Optional[int] = 5,
     ) -> dict:
         values = np.asarray(signal, dtype=np.float64).flatten()
         
@@ -126,7 +146,18 @@ class FeatureExtractor:
             except Exception:
                 pass
         
-        return {**stats, **freq_features, **adev_features}
+        # ---- NEW: wavelet domain features (MODWT) ----
+        wavelet_features = {}
+        if include_wavelet and len(values) >= 8:
+            try:
+                wavelet_features = extract_wavelet_features(
+                    values, self.fs, level=wavelet_level
+                )
+            except Exception:
+                pass
+        # ---- END NEW ----
+
+        return {**stats, **freq_features, **adev_features, **wavelet_features}
 
 #convenience function to extract features from multiple signals
     #args:
