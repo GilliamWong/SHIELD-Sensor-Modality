@@ -9,7 +9,7 @@ Run this script to verify:
   3. Degradation detection sensitivity
 
 Usage:
-    cd src && python test_modwt.py
+    python src/physics_based_classification/test_modwt.py
 
 Output:
     - Console validation results
@@ -21,15 +21,17 @@ Output:
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import sys
 
-from physics_based_classification.wavelet_analyses import (
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wavelet_analyses import (
     modwt, modwt_fast, extract_wavelet_features,
     get_wavelet_energy, get_wavelet_variance
 )
 
 # Output directory for generated figures
 _FIGURES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            '..', 'notebooks', 'figures')
+                            '..', '..', 'notebooks', 'figures')
 
 
 # =============================================================================

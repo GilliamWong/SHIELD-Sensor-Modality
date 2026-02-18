@@ -26,3 +26,15 @@ venv/
 # Claude AI files
 CLAUDE.md
 src/CLAUDE.md
+
+# Datasets (large, never commit)
+datasets/
+
+# Trained model artifacts (regenerate via notebook)
+src/physics_based_classification/models/*.joblib
+
+# Generated figures
+notebooks/figures/*.png
+
+# Loose reference PDFs
+*.pdf
