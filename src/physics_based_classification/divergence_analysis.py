@@ -151,6 +151,12 @@ def build_reference_distributions(
     """
     values = np.asarray(signal, dtype=np.float64).flatten()
 
+    # Remove non-finite values (NaN/inf from sensor dropouts)
+    values = values[np.isfinite(values)]
+
+    if values.size < 8:
+        return {}
+
     if values.size > 256:
         decomp = modwt_fast(values, level=level)
     else:
@@ -199,6 +205,7 @@ def compute_window_divergence(
         - div_mean_kl, div_max_kl, div_mean_jsd : summary stats
     """
     values = np.asarray(window, dtype=np.float64).flatten()
+    values = values[np.isfinite(values)]
 
     if values.size < 8:
         return {}
