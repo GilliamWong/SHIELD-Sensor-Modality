@@ -130,7 +130,7 @@ def assess_cross_condition_stability(
         values = [condition_means[name][feat] for name in feature_dfs]
         values = np.array(values)
         feat_mean = np.mean(values)
-        feat_std = np.std(values)
+        feat_std = np.std(values, ddof=1) if len(values) > 1 else 0.0
         cv = feat_std / (abs(feat_mean) + 1e-12)
         results.append({
             'feature': feat,

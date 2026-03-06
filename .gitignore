@@ -34,10 +34,16 @@ datasets/
 src/physics_based_classification/models/*.joblib
 
 # Generated figures
-notebooks/figures/*.png
+notebooks/figures/**/*.png
+
+# Executed notebooks (regenerate from source)
+notebooks/*_executed.ipynb
 
 # Loose reference PDFs
 *.pdf
 
 # Internal docs/reports
 docs/
+
+# Project documentation (PDFs + notes, kept local only)
+Documentation/

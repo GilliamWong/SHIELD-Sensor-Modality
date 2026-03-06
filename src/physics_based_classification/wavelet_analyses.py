@@ -61,53 +61,16 @@ _SYM4_WAVELET = _build_wavelet_filter(_SYM4_SCALING)
 # Core MODWT Implementation
 # =============================================================================
 
-def _modwt_circular_convolve(signal: np.ndarray, filt: np.ndarray, level: int) -> np.ndarray:
-    """Perform MODWT circular convolution at a given decomposition level.
-    
-    Uses FFT-based circular convolution for efficiency, as described in
-    Percival & Walden (2000), Section 5.5.
-    
-    At level j, the effective filter is the base filter upsampled by 2^(j-1),
-    and the MODWT filter is scaled by 1/sqrt(2^j) relative to DWT filters.
-    
-    Parameters
-    ----------
-    signal : 1D array of length N
-    filt : base filter coefficients (scaling or wavelet)
-    level : decomposition level (1-indexed)
-    
-    Returns
-    -------
-    1D array of length N (circular convolution result)
+def _max_modwt_level(N: int, L: int) -> int:
+    """Compute the maximum safe MODWT decomposition level.
+
+    At level j, the upsampled filter spans (L-1)*2^(j-1) + 1 samples.
+    For FFT-based circular convolution, this must be <= N to avoid
+    index collisions.
     """
-    N = len(signal)
-    L = len(filt)
-    
-    # Upsample the filter by inserting 2^(j-1) - 1 zeros between coefficients
-    upsample_factor = 2 ** (level - 1)
-    L_j = (L - 1) * upsample_factor + 1  # effective filter length at level j
-    
-    # Build the upsampled filter
-    filt_j = np.zeros(L_j)
-    for k in range(L):
-        filt_j[k * upsample_factor] = filt[k]
-    
-    # MODWT rescaling: divide by sqrt(2) at each level
-    # Cumulative: divide by sqrt(2^level) = 2^(level/2)
-    # But since we apply level-by-level, at THIS level we divide by sqrt(2)
-    # Actually for direct computation, the MODWT filter at level j is:
-    #   h_tilde_j = h_j / 2^(j/2)
-    # where h_j is the DWT filter at level j.
-    # Since we build from the base filter, we need to apply 1/sqrt(2) per level.
-    # For a single-pass (non-pyramid) approach, divide by 2^(level/2).
-    filt_j = filt_j / (2.0 ** (level / 2.0))
-    
-    # FFT-based circular convolution
-    sig_fft = np.fft.fft(signal, N)
-    filt_fft = np.fft.fft(filt_j, N)
-    result = np.real(np.fft.ifft(sig_fft * filt_fft))
-    
-    return result
+    if N < 2 or L < 2:
+        return 0
+    return max(1, int(np.floor(np.log2(N / (L - 1)))))
 
 
 def modwt(signal: np.ndarray, wavelet: str = 'sym4', level: Optional[int] = None) -> Dict[str, np.ndarray]:
@@ -159,20 +122,20 @@ def modwt(signal: np.ndarray, wavelet: str = 'sym4', level: Optional[int] = None
         raise ValueError(f"Wavelet '{wavelet}' not supported. Use 'sym4'.")
     
     L = len(g)
-    
+    max_level = _max_modwt_level(N, L)
+
     # Determine max level if not specified
     if level is None:
-        level = int(np.floor(np.log2(N / (L - 1))))
-        level = max(level, 1)
-    
+        level = max_level
+    else:
+        level = min(level, max_level)
+
     # Pyramid algorithm for MODWT
     # MODWT filters at level j are rescaled by 1/sqrt(2) relative to level j-1
     result = {}
     V = values.copy()  # V0 = original signal
     
     for j in range(1, level + 1):
-        N_v = len(V)
-        
         # MODWT rescaled filters: divide base filters by sqrt(2)
         g_modwt = g / np.sqrt(2.0)
         h_modwt = h / np.sqrt(2.0)
@@ -241,11 +204,13 @@ def modwt_fast(signal: np.ndarray, wavelet: str = 'sym4', level: Optional[int] =
         raise ValueError(f"Wavelet '{wavelet}' not supported. Use 'sym4'.")
     
     L = len(g)
-    
+    max_level = _max_modwt_level(N, L)
+
     if level is None:
-        level = int(np.floor(np.log2(N / (L - 1))))
-        level = max(level, 1)
-    
+        level = max_level
+    else:
+        level = min(level, max_level)
+
     # MODWT base filters (rescaled by 1/sqrt(2))
     g_modwt = g / np.sqrt(2.0)
     h_modwt = h / np.sqrt(2.0)
@@ -257,7 +222,6 @@ def modwt_fast(signal: np.ndarray, wavelet: str = 'sym4', level: Optional[int] =
         stride = 2 ** (j - 1)
         
         # Build the effective upsampled filter for this level
-        filt_len = (L - 1) * stride + 1
         h_j = np.zeros(N)
         g_j = np.zeros(N)
         for l in range(L):
@@ -292,10 +256,13 @@ def get_wavelet_variance(coeffs: np.ndarray) -> float:
     """Compute the variance of wavelet coefficients in a sub-band.
     
     The MODWT wavelet variance at scale j is:
-        var_j = (1/N) * sum(W_j[t]^2)
-    This is an unbiased estimator of the wavelet variance (Percival, 1995).
+        var_j = Var(W_j)
+    For detail coefficients this is equivalent to mean(W_j^2), because the
+    wavelet filter has zero DC gain and detail bands are zero-mean up to
+    floating-point precision. For the final approximation band, centering is
+    required so slowly varying offsets are not mislabeled as variance.
     """
-    return float(np.mean(coeffs ** 2))
+    return float(np.var(coeffs))
 
 
 def get_wavelet_rms(coeffs: np.ndarray) -> float:
@@ -463,5 +430,48 @@ def extract_wavelet_features(
     # Which detail level has the most energy (indicates dominant noise type)
     if detail_energies:
         features['modwt_max_energy_level'] = float(np.argmax(detail_energies) + 1)
-    
+
     return features
+
+
+# =============================================================================
+# Synthetic Degradation Injection
+# =============================================================================
+
+def inject_degradation(signal: np.ndarray, mode: str, severity: float = 1.0) -> np.ndarray:
+    """Inject synthetic degradation into a signal.
+
+    Parameters
+    ----------
+    signal : clean signal (1D array)
+    mode : 'noise_increase', 'bias_drift', 'bandwidth_loss', 'spike_injection'
+    severity : 0.0 (none) to 1.0 (full), controls degradation intensity
+
+    Returns
+    -------
+    Degraded copy of the signal.
+    """
+    n = len(signal)
+    t = np.linspace(0, 1, n)
+    degraded = signal.copy()
+
+    if mode == 'noise_increase':
+        noise = np.random.normal(0, severity * 3.0, n) * t
+        degraded += noise
+    elif mode == 'bias_drift':
+        drift = severity * 2.0 * t ** 2
+        degraded += drift
+    elif mode == 'bandwidth_loss':
+        for i in range(n):
+            w = max(1, int(1 + severity * 20 * (i / n)))
+            start = max(0, i - w // 2)
+            end = min(n, i + w // 2 + 1)
+            degraded[i] = np.mean(signal[start:end])
+    elif mode == 'spike_injection':
+        spike_prob = severity * 0.02 * t
+        spikes = np.random.random(n) < spike_prob
+        degraded[spikes] += np.random.choice([-5, 5], size=np.sum(spikes))
+    else:
+        raise ValueError(f"Unknown degradation mode: {mode}")
+
+    return degraded
