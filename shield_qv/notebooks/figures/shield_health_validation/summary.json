@@ -1,0 +1,267 @@
+{
+  "data_root": "/Users/gilliam/Desktop/Project Shield/datasets/SHIELD Data Collection/march 2 data (recollection of pololu and dfrobot)",
+  "selected_features": {
+    "DFRobot": {
+      "stable": [
+        "AccZ_rms",
+        "AccZ_modwt_a_rms",
+        "AccZ_mean",
+        "AccZ_modwt_total_energy",
+        "AccZ_modwt_a_energy",
+        "AccZ_quantile_50",
+        "AccY_modwt_a_energy",
+        "AccZ_quantile_75"
+      ],
+      "sensitive": [
+        "AccY_mean",
+        "AccZ_quantile_25",
+        "AccY_modwt_a_rms",
+        "AccZ_modwt_a_entropy"
+      ],
+      "mandatory": [
+        "AccX_sq_snr",
+        "AccX_sq_noise_floor",
+        "AccX_sq_baseline_stability",
+        "AccY_sq_snr",
+        "AccY_sq_noise_floor",
+        "AccY_sq_baseline_stability",
+        "AccZ_sq_snr",
+        "AccZ_sq_noise_floor",
+        "AccZ_sq_baseline_stability",
+        "GyroX_sq_snr",
+        "GyroX_sq_noise_floor",
+        "GyroX_sq_baseline_stability"
+      ],
+      "all": [
+        "AccX_sq_snr",
+        "AccX_sq_noise_floor",
+        "AccX_sq_baseline_stability",
+        "AccY_sq_snr",
+        "AccY_sq_noise_floor",
+        "AccY_sq_baseline_stability",
+        "AccZ_sq_snr",
+        "AccZ_sq_noise_floor",
+        "AccZ_sq_baseline_stability",
+        "GyroX_sq_snr",
+        "GyroX_sq_noise_floor",
+        "GyroX_sq_baseline_stability",
+        "AccZ_rms",
+        "AccZ_modwt_a_rms",
+        "AccZ_mean",
+        "AccZ_modwt_total_energy",
+        "AccZ_modwt_a_energy",
+        "AccZ_quantile_50",
+        "AccY_modwt_a_energy",
+        "AccZ_quantile_75",
+        "AccY_mean",
+        "AccZ_quantile_25",
+        "AccY_modwt_a_rms",
+        "AccZ_modwt_a_entropy"
+      ]
+    },
+    "Pololu": {
+      "stable": [
+        "AccZ_modwt_a_rms",
+        "AccZ_mean",
+        "AccZ_rms",
+        "AccZ_modwt_a_energy",
+        "AccZ_modwt_total_energy",
+        "AccZ_quantile_50",
+        "AccZ_modwt_a_entropy",
+        "AccZ_quantile_75"
+      ],
+      "sensitive": [
+        "AccZ_quantile_25",
+        "AccY_modwt_a_rms",
+        "AccY_mean",
+        "AccY_quantile_50"
+      ],
+      "mandatory": [
+        "AccX_sq_snr",
+        "AccX_sq_noise_floor",
+        "AccX_sq_baseline_stability",
+        "AccY_sq_snr",
+        "AccY_sq_noise_floor",
+        "AccY_sq_baseline_stability",
+        "AccZ_sq_snr",
+        "AccZ_sq_noise_floor",
+        "AccZ_sq_baseline_stability",
+        "GyroX_sq_snr",
+        "GyroX_sq_noise_floor",
+        "GyroX_sq_baseline_stability"
+      ],
+      "all": [
+        "AccX_sq_snr",
+        "AccX_sq_noise_floor",
+        "AccX_sq_baseline_stability",
+        "AccY_sq_snr",
+        "AccY_sq_noise_floor",
+        "AccY_sq_baseline_stability",
+        "AccZ_sq_snr",
+        "AccZ_sq_noise_floor",
+        "AccZ_sq_baseline_stability",
+        "GyroX_sq_snr",
+        "GyroX_sq_noise_floor",
+        "GyroX_sq_baseline_stability",
+        "AccZ_modwt_a_rms",
+        "AccZ_mean",
+        "AccZ_rms",
+        "AccZ_modwt_a_energy",
+        "AccZ_modwt_total_energy",
+        "AccZ_quantile_50",
+        "AccZ_modwt_a_entropy",
+        "AccZ_quantile_75",
+        "AccZ_quantile_25",
+        "AccY_modwt_a_rms",
+        "AccY_mean",
+        "AccY_quantile_50"
+      ]
+    }
+  },
+  "health_calibration": {
+    "DFRobot": {
+      "healthy_quantile": 0.95,
+      "healthy_threshold": 1.4258596543024822,
+      "healthy_scale": 0.6542751717137505
+    },
+    "Pololu": {
+      "healthy_quantile": 0.95,
+      "healthy_threshold": 1.7167114024285934,
+      "healthy_scale": 0.998904868710904
+    }
+  },
+  "condition_health": [
+    {
+      "sensor": "DFRobot",
+      "condition": "stationary",
+      "condition_label": "Stationary",
+      "rpm": 0,
+      "mean_health_score": 1.0,
+      "std_health_score": 0.0,
+      "mean_health_score_raw": 0.7248178203729789,
+      "mean_div_mean_kl": 2.7152583361139166,
+      "mean_div_mean_jsd": 0.2519146540108554
+    },
+    {
+      "sensor": "DFRobot",
+      "condition": "40_rpm",
+      "condition_label": "40 RPM",
+      "rpm": 40,
+      "mean_health_score": 1.0,
+      "std_health_score": 0.0,
+      "mean_health_score_raw": 0.4795432381058532,
+      "mean_div_mean_kl": 2.2675085215446424,
+      "mean_div_mean_jsd": 0.1472017356864181
+    },
+    {
+      "sensor": "DFRobot",
+      "condition": "80_rpm",
+      "condition_label": "80 RPM",
+      "rpm": 80,
+      "mean_health_score": 1.0,
+      "std_health_score": 0.0,
+      "mean_health_score_raw": 0.8096578377325269,
+      "mean_div_mean_kl": 1.4811430181390766,
+      "mean_div_mean_jsd": 0.14200019347736806
+    },
+    {
+      "sensor": "DFRobot",
+      "condition": "120_rpm",
+      "condition_label": "120 RPM",
+      "rpm": 120,
+      "mean_health_score": 1.0,
+      "std_health_score": 0.0,
+      "mean_health_score_raw": 0.7618333718566292,
+      "mean_div_mean_kl": 1.3631406613623784,
+      "mean_div_mean_jsd": 0.17890009315312053
+    },
+    {
+      "sensor": "DFRobot",
+      "condition": "160_rpm",
+      "condition_label": "160 RPM",
+      "rpm": 160,
+      "mean_health_score": 0.9998146047109301,
+      "std_health_score": 0.003055262273421257,
+      "mean_health_score_raw": 1.014059233757168,
+      "mean_div_mean_kl": 2.3261543441128323,
+      "mean_div_mean_jsd": 0.24577132218762343
+    },
+    {
+      "sensor": "DFRobot",
+      "condition": "200_rpm",
+      "condition_label": "200 RPM",
+      "rpm": 200,
+      "mean_health_score": 0.952746117779206,
+      "std_health_score": 0.06762316793002036,
+      "mean_health_score_raw": 1.422135994559712,
+      "mean_div_mean_kl": 2.443502787189166,
+      "mean_div_mean_jsd": 0.2890341001383358
+    },
+    {
+      "sensor": "Pololu",
+      "condition": "stationary",
+      "condition_label": "Stationary",
+      "rpm": 0,
+      "mean_health_score": 1.0,
+      "std_health_score": 0.0,
+      "mean_health_score_raw": 0.7083212197508019,
+      "mean_div_mean_kl": 2.393728709125913,
+      "mean_div_mean_jsd": 0.36148605811074974
+    },
+    {
+      "sensor": "Pololu",
+      "condition": "40_rpm",
+      "condition_label": "40 RPM",
+      "rpm": 40,
+      "mean_health_score": 1.0,
+      "std_health_score": 0.0,
+      "mean_health_score_raw": 0.8032268451703787,
+      "mean_div_mean_kl": 2.80365220518605,
+      "mean_div_mean_jsd": 0.17382127571125633
+    },
+    {
+      "sensor": "Pololu",
+      "condition": "80_rpm",
+      "condition_label": "80 RPM",
+      "rpm": 80,
+      "mean_health_score": 1.0,
+      "std_health_score": 0.0,
+      "mean_health_score_raw": 0.6912824326205679,
+      "mean_div_mean_kl": 1.6067558024347706,
+      "mean_div_mean_jsd": 0.14746505453471614
+    },
+    {
+      "sensor": "Pololu",
+      "condition": "120_rpm",
+      "condition_label": "120 RPM",
+      "rpm": 120,
+      "mean_health_score": 1.0,
+      "std_health_score": 0.0,
+      "mean_health_score_raw": 0.5904055402732469,
+      "mean_div_mean_kl": 1.6013593282907603,
+      "mean_div_mean_jsd": 0.19802180160206115
+    },
+    {
+      "sensor": "Pololu",
+      "condition": "160_rpm",
+      "condition_label": "160 RPM",
+      "rpm": 160,
+      "mean_health_score": 1.0,
+      "std_health_score": 0.0,
+      "mean_health_score_raw": 0.7007210388740577,
+      "mean_div_mean_kl": 2.465913050196842,
+      "mean_div_mean_jsd": 0.2619553671639813
+    },
+    {
+      "sensor": "Pololu",
+      "condition": "200_rpm",
+      "condition_label": "200 RPM",
+      "rpm": 200,
+      "mean_health_score": 0.9464803895000918,
+      "std_health_score": 0.07874437962334838,
+      "mean_health_score_raw": 1.711997343681269,
+      "mean_div_mean_kl": 2.6521900505502716,
+      "mean_div_mean_jsd": 0.30692730241314725
+    }
+  ]
+}
